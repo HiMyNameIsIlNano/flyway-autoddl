@@ -13,7 +13,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "DUMMY", indexes = {
-        @Index(name = "dummy", columnList = "naturalId")
+        @Index(name = "dummy_nid_idx", columnList = "naturalId")
 })
 public class Dummy {
 
@@ -41,5 +41,9 @@ public class Dummy {
 
     public int getNumber() {
         return number;
+    }
+
+    public String getItem() {
+        return item;
     }
 }

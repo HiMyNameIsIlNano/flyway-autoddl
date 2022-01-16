@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  demo-db:
+    environment:
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_USER=test
+      - POSTGRES_DB=trash
+    image: library/postgres:14.1
+    container_name: demo-db
+    expose:
+      - 127.0.0.1:5432
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      #- ./init-db:/docker-entrypoint-initdb.d
+      - demo-db-data:/var/lib/demo-db/data
+volumes:
+  demo-db-data:

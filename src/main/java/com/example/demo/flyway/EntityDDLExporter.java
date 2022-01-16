@@ -97,7 +97,8 @@ public class EntityDDLExporter {
     void printErrorAndExit(File file, String migration) {
         System.err.println(migration);
         System.err.println(file.getAbsolutePath());
-        System.exit(1);
+
+        throw new IllegalStateException(String.format("New migration %s detected!", file.getAbsolutePath()));
     }
 
     String getFilename(String suffix) {
