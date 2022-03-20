@@ -1,4 +1,4 @@
-package com.example.demo.flyway;
+package com.example.demo.configuration.flyway;
 
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;

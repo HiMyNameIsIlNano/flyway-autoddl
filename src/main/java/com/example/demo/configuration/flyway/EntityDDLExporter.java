@@ -1,4 +1,4 @@
-package com.example.demo.flyway;
+package com.example.demo.configuration.flyway;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -7,7 +7,6 @@ import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.util.FileCopyUtils;
@@ -21,8 +20,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class EntityDDLExporter {
+
+    private static final Logger LOG = Logger.getLogger(EntityDDLExporter.class.toString());
 
     private final LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean;
 
@@ -51,31 +53,37 @@ public class EntityDDLExporter {
     }
 
     private void doCreateMigration() throws IOException {
+        PersistenceUnitInfo persistenceUnitInfo = getPersistenceUnitInfo();
+
+        String filename = buildMigrationFilename("'entity_name'");
+        writeMigrationToFile(filename, persistenceUnitInfo);
+        checkIfMigrationFileAlreadyExistsAndThrow(filename);
+    }
+
+    private PersistenceUnitInfo getPersistenceUnitInfo() {
         PersistenceUnitInfo persistenceUnitInfo = localContainerEntityManagerFactoryBean.getPersistenceUnitInfo();
 
-        if (persistenceUnitInfo == null) {
-            throw new IllegalStateException("The persistence unit is null");
-        }
-
-        String filename = getFilename("'entity_name'");
-        writeMigrationToFile(filename, persistenceUnitInfo);
-        checkFile(filename);
+        return Objects.requireNonNull(persistenceUnitInfo, "The persistence unit is null");
     }
 
     private void writeMigrationToFile(String filename, PersistenceUnitInfo persistenceUnitInfo) {
         StandardServiceRegistry serviceRegistry = getStandardServiceRegistry();
+        Metadata metadata = collectModifiedEntities(persistenceUnitInfo, serviceRegistry);
+
+        SchemaUpdate update = new SchemaUpdate();
+        update.setFormat(true);
+        update.setOutputFile(filename);
+        update.setDelimiter(";");
+        update.execute(EnumSet.of(TargetType.SCRIPT), metadata, serviceRegistry);
+    }
+
+    private Metadata collectModifiedEntities(PersistenceUnitInfo persistenceUnitInfo, StandardServiceRegistry serviceRegistry) {
         MetadataSources metadataSources =
                 new MetadataSources(new BootstrapServiceRegistryBuilder().build());
 
         persistenceUnitInfo.getManagedClassNames().forEach(metadataSources::addAnnotatedClassName);
 
-        Metadata metadata = metadataSources.buildMetadata(serviceRegistry);
-
-        SchemaUpdate update = new SchemaUpdate(); // To create SchemaUpdate
-        update.setFormat(true);
-        update.setOutputFile(filename);
-        update.setDelimiter(";");
-        update.execute(EnumSet.of(TargetType.SCRIPT), metadata, serviceRegistry);
+        return metadataSources.buildMetadata(serviceRegistry);
     }
 
     StandardServiceRegistry getStandardServiceRegistry() {
@@ -84,24 +92,17 @@ public class EntityDDLExporter {
         return sessionFactory.getSessionFactoryOptions().getServiceRegistry();
     }
 
-    void checkFile(String filename) throws IOException {
+    void checkIfMigrationFileAlreadyExistsAndThrow(String filename) throws IOException {
         File file = new File(filename);
         if (file.exists() && file.length() > 0) {
-            String migration = FileCopyUtils.copyToString(new FileReader(file));
-            printErrorAndExit(file, migration);
+            FileCopyUtils.copyToString(new FileReader(file));
+            throw new IllegalStateException(String.format("New migration %s detected!", file.getAbsolutePath()));
         } else if (file.exists()) {
             Files.delete(file.toPath());
         }
     }
 
-    void printErrorAndExit(File file, String migration) {
-        System.err.println(migration);
-        System.err.println(file.getAbsolutePath());
-
-        throw new IllegalStateException(String.format("New migration %s detected!", file.getAbsolutePath()));
-    }
-
-    String getFilename(String suffix) {
+    String buildMigrationFilename(String suffix) {
         DateTimeFormatter formatter =
                 DateTimeFormatter.ofPattern(
                         "'" + flywayPrefix + "'uuuu.MM.dd_HH.mm.ss" + migrationSeparator + suffix);

@@ -12,7 +12,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      #- ./init-db:/docker-entrypoint-initdb.d
+      - ./demo-data-db-init:/docker-entrypoint-initdb.d
       - demo-db-data:/var/lib/demo-db/data
 volumes:
   demo-db-data:

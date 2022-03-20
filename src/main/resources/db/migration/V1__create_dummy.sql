@@ -4,7 +4,7 @@ create table dummy
     natural_id varchar(255),
     primary key (id)
 );
-create index dummy on dummy (natural_id);
+create index dummy_nid_idx on dummy (natural_id);
 
 alter table dummy
 drop
