@@ -3,8 +3,9 @@ package com.example.demo.configuration.flyway;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.BootstrapServiceRegistryBuilder;
 import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.dialect.PostgreSQL95Dialect;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
 import org.springframework.core.env.Environment;
@@ -19,12 +20,10 @@ import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Logger;
 
 public class EntityDDLExporter {
-
-    private static final Logger LOG = Logger.getLogger(EntityDDLExporter.class.toString());
 
     private final LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean;
 
@@ -34,11 +33,11 @@ public class EntityDDLExporter {
 
     private final String migrationSuffix;
 
-    public EntityDDLExporter(LocalContainerEntityManagerFactoryBean factoryBean, Environment environment) {
-        Objects.requireNonNull(environment, "environment should not be null");
-        Objects.requireNonNull(factoryBean, "factoryBean should not be null");
+    public EntityDDLExporter(LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean,
+                             Environment environment) {
+        this.localContainerEntityManagerFactoryBean = localContainerEntityManagerFactoryBean;
 
-        localContainerEntityManagerFactoryBean = factoryBean;
+        Objects.requireNonNull(environment, "environment should not be null");
         migrationSeparator = environment.getProperty("spring.flyway.sql-migration-separator");
         flywayPrefix = environment.getProperty("spring.flyway.sql-migration-prefix");
         migrationSuffix = environment.getProperty("spring.flyway.sql-migration-suffixes");
@@ -68,7 +67,7 @@ public class EntityDDLExporter {
 
     private void writeMigrationToFile(String filename, PersistenceUnitInfo persistenceUnitInfo) {
         StandardServiceRegistry serviceRegistry = getStandardServiceRegistry();
-        Metadata metadata = collectModifiedEntities(persistenceUnitInfo, serviceRegistry);
+        Metadata metadata = collectModifiedEntities(persistenceUnitInfo);
 
         SchemaUpdate update = new SchemaUpdate();
         update.setFormat(true);
@@ -77,13 +76,16 @@ public class EntityDDLExporter {
         update.execute(EnumSet.of(TargetType.SCRIPT), metadata, serviceRegistry);
     }
 
-    private Metadata collectModifiedEntities(PersistenceUnitInfo persistenceUnitInfo, StandardServiceRegistry serviceRegistry) {
-        MetadataSources metadataSources =
-                new MetadataSources(new BootstrapServiceRegistryBuilder().build());
+    private Metadata collectModifiedEntities(PersistenceUnitInfo persistenceUnitInfo) {
+        Map<String, String> settings = Map.of("hibernate.dialect", PostgreSQL95Dialect.class.getCanonicalName());
 
-        persistenceUnitInfo.getManagedClassNames().forEach(metadataSources::addAnnotatedClassName);
+        MetadataSources metadata = new MetadataSources(
+                new StandardServiceRegistryBuilder()
+                        .applySettings(settings)
+                        .build());
 
-        return metadataSources.buildMetadata(serviceRegistry);
+        persistenceUnitInfo.getManagedClassNames().forEach(metadata::addAnnotatedClassName);
+        return metadata.buildMetadata();
     }
 
     StandardServiceRegistry getStandardServiceRegistry() {
