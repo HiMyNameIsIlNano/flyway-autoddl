@@ -16,8 +16,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "DUMMY", indexes = {
-        @Index(name = "dummy_nid_idx", columnList = "naturalId"),
-        @Index(name = "dummy_nitem3_idx", columnList = "item3")
+        @Index(name = "dummy_nid_idx", columnList = "naturalId")
 })
 @Audited
 public class Dummy {
@@ -30,19 +29,16 @@ public class Dummy {
     @NaturalId
     private String naturalId;
 
-    @Column(name = "SERIAL_ID")
-    private int number;
+    @Column(name = "FOO")
+    private int foo;
 
-    @Column(name = "ITEM")
-    private String item;
-
-    @Column(name = "ITEM2")
-    private String item2;
+    @Column(name = "BAR")
+    private int bar;
 
     @Lob
-    @Column(name = "ITEM3", columnDefinition = "VARCHAR2(350)")
+    @Column(name = "BAZ", columnDefinition = "VARCHAR(350)")
     @Comment("I am just a nice comment")
-    private String item3;
+    private String baz;
 
     public Long getId() {
         return id;
@@ -52,19 +48,15 @@ public class Dummy {
         return naturalId;
     }
 
-    public int getNumber() {
-        return number;
+    public int getFoo() {
+        return foo;
     }
 
-    public String getItem() {
-        return item;
+    public int getBar() {
+        return bar;
     }
 
-    public String getItem2() {
-        return item2;
-    }
-
-    public String getItem3() {
-        return item3;
+    public String getBaz() {
+        return baz;
     }
 }
