@@ -1,5 +1,6 @@
 package com.example.demo.dummy;
 
+import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.NaturalId;
 
 import javax.persistence.Column;
@@ -8,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Index;
+import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -25,11 +27,12 @@ public class Dummy {
     @NaturalId
     private String naturalId;
 
-    @Column(name = "SERIAL_ID")
-    private int number;
+    @Column(name = "FOO")
+    private int foo;
 
-    @Column(name = "ITEM")
-    private String item;
+    @Column(name = "BAR", columnDefinition = "INTEGER")
+    @Comment("I am just a nice comment")
+    private int bar;
 
     public Long getId() {
         return id;
@@ -39,11 +42,11 @@ public class Dummy {
         return naturalId;
     }
 
-    public int getNumber() {
-        return number;
+    public int getFoo() {
+        return foo;
     }
 
-    public String getItem() {
-        return item;
+    public int getBar() {
+        return bar;
     }
 }
