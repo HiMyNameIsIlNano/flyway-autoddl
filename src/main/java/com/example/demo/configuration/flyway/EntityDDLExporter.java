@@ -27,17 +27,29 @@ public class EntityDDLExporter {
 
     private final LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean;
 
+    private final String dbUrl;
+
+    private final String dbUserName;
+
+    private final String dbPwd;
+
     private final String flywayPrefix;
 
     private final String migrationSeparator;
 
     private final String migrationSuffix;
 
+    private final String dbDialect;
+
     public EntityDDLExporter(LocalContainerEntityManagerFactoryBean localContainerEntityManagerFactoryBean,
                              Environment environment) {
         this.localContainerEntityManagerFactoryBean = localContainerEntityManagerFactoryBean;
 
-        Objects.requireNonNull(environment, "environment should not be null");
+        dbUrl = environment.getProperty("spring.datasource.url");
+        dbUserName = environment.getProperty("spring.datasource.username");
+        dbPwd = environment.getProperty("spring.datasource.password");
+        dbDialect = environment.getProperty("spring.jpa.database-platform");
+
         migrationSeparator = environment.getProperty("spring.flyway.sql-migration-separator");
         flywayPrefix = environment.getProperty("spring.flyway.sql-migration-prefix");
         migrationSuffix = environment.getProperty("spring.flyway.sql-migration-suffixes");
@@ -77,7 +89,12 @@ public class EntityDDLExporter {
     }
 
     private Metadata collectModifiedEntities(PersistenceUnitInfo persistenceUnitInfo) {
-        Map<String, String> settings = Map.of("hibernate.dialect", PostgreSQL95Dialect.class.getCanonicalName());
+        Map<String, String> settings = Map.of(
+                "hibernate.connection.url", dbUrl,
+                "hibernate.connection.username", dbUserName,
+                "hibernate.connection.password", dbPwd,
+                "hibernate.connection.dialect", dbDialect
+        );
 
         MetadataSources metadata = new MetadataSources(
                 new StandardServiceRegistryBuilder()
