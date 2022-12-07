@@ -1,5 +1,6 @@
 package com.example.demo.configuration.flyway;
 
+import jakarta.persistence.spi.PersistenceUnitInfo;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
@@ -12,7 +13,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.util.FileCopyUtils;
 
-import javax.persistence.spi.PersistenceUnitInfo;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
