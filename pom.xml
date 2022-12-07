@@ -24,7 +24,11 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-envers</artifactId>
-            <version>3.0.0</version>
+            <version>${parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-ant</artifactId>
         </dependency>
 
         <dependency>

@@ -6,7 +6,6 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.dialect.PostgreSQL95Dialect;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
 import org.hibernate.tool.schema.TargetType;
 import org.springframework.core.env.Environment;
@@ -89,7 +88,7 @@ public class EntityDDLExporter {
     }
 
     private Metadata collectModifiedEntities(PersistenceUnitInfo persistenceUnitInfo) {
-        Map<String, String> settings = Map.of(
+        Map<String, Object> settings = Map.of(
                 "hibernate.connection.url", dbUrl,
                 "hibernate.connection.username", dbUserName,
                 "hibernate.connection.password", dbPwd,
